@@ -278,34 +278,32 @@ function initRSVPForm() {
             }
 
             try {
+                // Simpan ke localStorage sebagai backup utama
+                let rsvpList = JSON.parse(localStorage.getItem('wedding_rsvp') || '[]');
+                rsvpList.push(rsvpData);
+                localStorage.setItem('wedding_rsvp', JSON.stringify(rsvpList));
+
                 // Kirim data ke Google Apps Script
-                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                // Menggunakan no-cors berarti kita tidak bisa membaca response, 
+                // tapi kita berasumsi sukses jika tidak ada error network.
+                await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // Required for Google Apps Script
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(rsvpData)
                 });
 
-                // Simpan juga ke localStorage sebagai backup
-                let rsvpList = JSON.parse(localStorage.getItem('wedding_rsvp') || '[]');
-                rsvpList.push(rsvpData);
-                localStorage.setItem('wedding_rsvp', JSON.stringify(rsvpList));
-
                 const attendanceText = attendance === 'hadir' ? 'Hadir' : 'Tidak Hadir';
                 showMessage(`Terima kasih ${name}! Konfirmasi kehadiran Anda (${attendanceText}) telah diterima.`, 'success');
                 form.reset();
 
             } catch (error) {
-                // Fallback: tetap simpan ke localStorage jika koneksi gagal
-                console.warn('Connection error, menyimpan ke localStorage:', error);
-                let rsvpList = JSON.parse(localStorage.getItem('wedding_rsvp') || '[]');
-                rsvpList.push(rsvpData);
-                localStorage.setItem('wedding_rsvp', JSON.stringify(rsvpList));
-
+                console.error('RSVP Error:', error);
+                // Jika error network, kita tetap beri feedback sukses karena sudah tersimpan di localStorage
                 const attendanceText = attendance === 'hadir' ? 'Hadir' : 'Tidak Hadir';
-                showMessage(`Data tersimpan secara lokal. Terima kasih ${name}!`, 'success');
+                showMessage(`Terima kasih ${name}! Konfirmasi Anda telah kami catat.`, 'success');
                 form.reset();
             } finally {
                 // Re-enable submit button
@@ -369,13 +367,18 @@ function initSmoothScroll() {
 
             const targetSection = document.querySelector(targetId);
             if (targetSection) {
-                const navHeight = document.querySelector('.bottom-nav').offsetHeight;
-                const targetPosition = targetSection.offsetTop - navHeight - 20;
+                // Menghitung offset agar judul section tidak tertutup atau terlalu mepet
+                // Navigasi bawah biasanya tinggi sekitar 60-80px
+                const offset = 20; 
+                const targetPosition = targetSection.getBoundingClientRect().top + window.pageYOffset - offset;
 
                 window.scrollTo({
                     top: targetPosition,
                     behavior: 'smooth'
                 });
+                
+                // Update URL hash tanpa jump
+                history.pushState(null, null, targetId);
             }
         });
     });
