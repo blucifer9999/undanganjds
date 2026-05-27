@@ -6,11 +6,10 @@ document.addEventListener('DOMContentLoaded', function () {
     initGreeting();
     initIntroOverlay();
     initCountdown();
-    initScrollAnimation();
     initRSVPForm();
-    initSmoothScroll();
     initGalleryModal();
     initMusicControl();
+    initSwipePages();
 });
 
 // Intro overlay that opens the content separately
@@ -49,7 +48,13 @@ function initIntroOverlay() {
         );
     }
 
-    button.addEventListener('click', closeOverlay);
+    button.addEventListener('click', function() {
+        closeOverlay();
+        // Ensure the first page is visible after overlay closes
+        document.querySelector('.page-track').style.transform = 'translateX(0)';
+        document.querySelectorAll('.bottom-nav button').forEach(btn => btn.classList.remove('active'));
+        document.querySelector('.bottom-nav button[data-target="home"]').classList.add('active');
+    });
 }
 
 function initMusicControl() {
@@ -185,8 +190,8 @@ function initGalleryModal() {
 
 // Countdown Timer
 function initCountdown() {
-    // Wedding date: June 3, 2026
-    const weddingDate = new Date('2026-06-03T09:00:00').getTime();
+    // Wedding date: June 7, 2026
+    const weddingDate = new Date('2026-06-07T09:00:00').getTime();
 
     function updateCountdown() {
         const now = new Date().getTime();
@@ -213,28 +218,6 @@ function initCountdown() {
 
     updateCountdown();
     setInterval(updateCountdown, 1000);
-}
-
-// Scroll Animation
-function initScrollAnimation() {
-    const sections = document.querySelectorAll('section');
-
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
-
-    const observer = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('visible');
-            }
-        });
-    }, observerOptions);
-
-    sections.forEach(function (section) {
-        observer.observe(section);
-    });
 }
 
 // RSVP Form with Google Apps Script Integration
@@ -327,65 +310,97 @@ function initRSVPForm() {
     }
 }
 
-// Smooth Scroll for Navigation Links with Active State
-function initSmoothScroll() {
-    const navLinks = document.querySelectorAll('.bottom-nav a');
-    const sections = document.querySelectorAll('section[id]');
+// Page swipe functionality
+function initSwipePages() {
+    const pageTrack = document.querySelector('.page-track');
+    const navButtons = document.querySelectorAll('.bottom-nav button');
+    const sections = document.querySelectorAll('.page-section');
+    let currentPageIndex = 0;
 
-    // Intersection Observer to track active section
-    const observerOptions = {
-        root: null,
-        rootMargin: '-50% 0px -50% 0px',
-        threshold: 0
-    };
+    function updatePagePosition() {
+        pageTrack.style.transform = `translateX(-${currentPageIndex * 100}%)`;
+        updateActiveNavButton();
+    }
 
-    const observer = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-                const activeId = entry.target.getAttribute('id');
-                navLinks.forEach(function (link) {
-                    link.classList.remove('active');
-                    if (link.getAttribute('href') === '#' + activeId) {
-                        link.classList.add('active');
-                    }
-                });
+    function updateActiveNavButton() {
+        navButtons.forEach((button, index) => {
+            button.classList.remove('active');
+            if (button.dataset.target === sections[currentPageIndex].id) {
+                button.classList.add('active');
             }
         });
-    }, observerOptions);
+    }
 
-    sections.forEach(function (section) {
-        observer.observe(section);
-    });
+    function triggerBackgroundShift(direction) {
+        const body = document.body;
+        const shiftClass = direction === 'left' ? 'bg-shift-left' : 'bg-shift-right';
+        const oppositeClass = direction === 'left' ? 'bg-shift-right' : 'bg-shift-left';
+        
+        // Remove any existing shift class
+        body.classList.remove('bg-shift-left', 'bg-shift-right');
+        
+        // Trigger reflow to restart animation
+        void body.offsetWidth;
+        
+        // Add the new shift class
+        body.classList.add(shiftClass);
+        
+        // Remove class after animation completes
+        setTimeout(() => {
+            body.classList.remove(shiftClass);
+        }, 600);
+    }
 
-    // Smooth scroll click handler
-    navLinks.forEach(function (link) {
-        link.addEventListener('click', function (e) {
-            e.preventDefault();
-
-            const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
-
-            const targetSection = document.querySelector(targetId);
-            if (targetSection) {
-                // Menghitung offset agar judul section tidak tertutup atau terlalu mepet
-                // Navigasi bawah biasanya tinggi sekitar 60-80px
-                const offset = 20; 
-                const targetPosition = targetSection.getBoundingClientRect().top + window.pageYOffset - offset;
-
-                window.scrollTo({
-                    top: targetPosition,
-                    behavior: 'smooth'
-                });
+    navButtons.forEach((button, index) => {
+        button.addEventListener('click', () => {
+            const targetId = button.dataset.target;
+            const targetIndex = Array.from(sections).findIndex(section => section.id === targetId);
+            if (targetIndex !== -1) {
+                // Determine direction
+                const direction = targetIndex > currentPageIndex ? 'left' : 'right';
+                triggerBackgroundShift(direction);
                 
-                // Update URL hash tanpa jump
-                history.pushState(null, null, targetId);
+                currentPageIndex = targetIndex;
+                updatePagePosition();
             }
         });
     });
+
+    // Optional: Add swipe gesture for touch devices (basic implementation)
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    pageTrack.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+    });
+
+    pageTrack.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].clientX;
+        handleSwipeGesture();
+    });
+
+    function handleSwipeGesture() {
+        if (touchEndX < touchStartX - 50) { // Swiped left
+            if (currentPageIndex < sections.length - 1) {
+                triggerBackgroundShift('left');
+                currentPageIndex++;
+                updatePagePosition();
+            }
+        } else if (touchEndX > touchStartX + 50) { // Swiped right
+            if (currentPageIndex > 0) {
+                triggerBackgroundShift('right');
+                currentPageIndex--;
+                updatePagePosition();
+            }
+        }
+    }
+
+    // Initialize active button
+    updateActiveNavButton();
 }
 
-// Optional: Add parallax effect to hero
-window.addEventListener('scroll', function () {
+// Remove parallax effect, not relevant for swipe
+window.removeEventListener('scroll', function () {
     const hero = document.querySelector('.hero');
     if (hero) {
         const scrolled = window.pageYOffset;
