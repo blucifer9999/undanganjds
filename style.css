@@ -1084,20 +1084,14 @@ body.intro-active {
     width: 80px; /* Wider underline */
     height: 3px; /* Thicker underline */
     background: linear-gradient(to right, transparent, var(--primary-color), transparent); /* Gold gradient */
-    margin: 15px auto 0;
-}
-
-@media (max-width: 768px) {
-    .section-title::after {
-        margin: 12px auto 0;
-    }
+    margin: 20px auto 0;
 }
 
 @media (max-width: 480px) {
     .section-title::after {
         width: 60px;
         height: 2px;
-        margin: 8px auto 0;
+        margin: 15px auto 0;
     }
 }
 
