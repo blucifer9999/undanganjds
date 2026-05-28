@@ -1586,12 +1586,12 @@ body.intro-active {
 }
 
 .greeting-name {
-    font-size: 3rem; /* Larger greeting name */
+    font-size: 2.5rem; /* Larger greeting name */
     font-family: 'Cormorant Garamond', serif;
     color: var(--white);
-    font-weight: 600;
-    margin-bottom: 20px;
-    min-height: 70px;
+    font-weight: 300;
+    margin-bottom: 30px;
+    min-height: 120px;
 }
 
 .greeting-subtitle {
@@ -2633,6 +2633,14 @@ section.visible {
     min-height: 100vh;
 }
 
+@media (max-width: 480px) {
+    .greeting-page-two-bg {
+        justify-content: flex-start;
+        min-height: auto;
+        padding-top: 20px;
+    }
+}
+
 /* Background utama - kebyok.png */
 .greeting-page-two-bg::before {
     content: '';
@@ -2673,7 +2681,7 @@ section.visible {
 .greeting-opening-grid::before {
     content: '';
     position: absolute;
-    top: -75%;
+    top: -65%;
     left: 50%;
     transform: translateX(-50%);
     width: 90%;
@@ -2688,6 +2696,14 @@ section.visible {
     pointer-events: none;
 }
 
+@media (max-width: 480px) {
+    .greeting-opening-grid::before {
+        top: -15%;
+        height: 1500px;
+        max-width: 1200px;
+    }
+}
+
 .greeting-opening-grid {
     position: relative;
     padding-top: clamp(60px, 18vw, 220px);
@@ -2696,7 +2712,7 @@ section.visible {
 
 @media (max-width: 480px) {
     .greeting-opening-grid {
-        padding-top: -100px;
+        padding-top: 10px;
         padding-bottom: 40px;
     }
 }
