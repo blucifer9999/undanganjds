@@ -2637,7 +2637,7 @@ section.visible {
 .greeting-page-two-bg::before {
     content: '';
     position: absolute;
-    top: 50%;
+    top: 45%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 90%;
@@ -2654,7 +2654,7 @@ section.visible {
 .greeting-page-two-bg::after {
     content: '';
     position: absolute;
-    bottom: 5%;
+    bottom: 10%;
     left: 50%;
     transform: translateX(-50%);
     width: 90%;
@@ -2673,7 +2673,7 @@ section.visible {
 .greeting-opening-grid::before {
     content: '';
     position: absolute;
-    top: -60%;
+    top: -75%;
     left: 50%;
     transform: translateX(-50%);
     width: 90%;
