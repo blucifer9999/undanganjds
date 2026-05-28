@@ -2696,7 +2696,7 @@ section.visible {
 
 @media (max-width: 480px) {
     .greeting-opening-grid {
-        padding-top: -20px;
+        padding-top: -100px;
         padding-bottom: 40px;
     }
 }
